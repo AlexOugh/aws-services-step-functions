@@ -9,15 +9,20 @@ exports.handler = (event, context, callback) => {
           regions.push(region.RegionName);
         });
         const num = regions.length;
+        const body = {
+          "region": "",
+          "account": event.account
+        }
         const input = {
           "path": "/cloudtrail",
-          "httpMethod": "GET",
+          "httpMethod": event.method,
           "headers": {
-            "Credentials": JSON.stringify(event.Credentials)
+            "Credentials": JSON.stringify(event.federation.body.Credentials)
           },
           "queryStringParameters": {
             "region": ""
           },
+          "body": JSON.stringify(body),
           "requestContext": {
             "authorizer": {
               "refresh_token": "abcd",
