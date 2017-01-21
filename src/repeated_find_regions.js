@@ -14,7 +14,7 @@ exports.handler = (event, context, callback) => {
           "account": event.account
         }
         const input = {
-          "path": "/cloudtrail",
+          "path": "/dummy",
           "httpMethod": event.method,
           "headers": {
             "Credentials": JSON.stringify(event.federation.body.Credentials)
