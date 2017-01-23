@@ -35,7 +35,6 @@ State Machines to Manage AWS Services
       "sessionName": "<<session_name>>",
       "durationSeconds": 0
   },
-  "account": "<<target_account>>",
   "method": "POST"
 }
 ```
