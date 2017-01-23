@@ -10,8 +10,7 @@ exports.handler = (event, context, callback) => {
         });
         const num = regions.length;
         const body = {
-          "region": "",
-          "account": event.account
+          "region": ""
         }
         const input = {
           "path": "/dummy",
