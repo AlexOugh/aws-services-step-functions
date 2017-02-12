@@ -1,0 +1,46 @@
+{
+  "Comment": "Check the Status of OnBoarding Process",
+  "StartAt": "StartExecution",
+  "States": {
+    "StartExecution": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:089476987273:function:state_machine_run",
+      "Next": "CheckExecution"
+    },
+    "CheckExecution": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:089476987273:function:state_machine_run_check",
+      "Next": "ChoiceState"
+    },
+    "ChoiceState": {
+      "Type" : "Choice",
+      "Choices": [
+        {
+          "Variable": "$.status",
+          "StringEquals": "RUNNING",
+          "Next": "Wait5s"
+        },
+        {
+          "Variable": "$.status",
+          "StringLessThan": "RUNNING",
+          "Next": "FinalState"
+        },
+        {
+          "Variable": "$.status",
+          "StringGreaterThan": "RUNNING",
+          "Next": "FinalState"
+        }
+      ],
+      "Default": "Wait5s"
+    },
+    "Wait5s": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "CheckExecution"
+    },
+    "FinalState": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}

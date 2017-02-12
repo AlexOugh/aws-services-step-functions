@@ -1,5 +1,5 @@
 {
-  "Comment": "AWSConfig Status Check for All Regions",
+  "Comment": "OnBoarding Process for New Account",
   "StartAt": "Federation",
   "States": {
     "Federation": {
