@@ -1,10 +1,18 @@
 
 exports.handler = (event, context, callback) => {
-    const region = event.regions.shift();
-    event.num = event.regions.length;
-    event.input.queryStringParameters.region = region;
-    var body = JSON.parse(event.input.body);
-    body.region = region;
-    event.input.body = JSON.stringify(body);
-    callback(null, event);
+  const region = event.regions.shift();
+  event.num = event.regions.length;
+  Object.keys(event.resources).forEach(function(key) {
+    event.resources[key].input.body.region = region;
+    event.resources[key].input.queryStringParameters.region = region;
+  });
+  /* {
+    regions: [],
+    num: 0,
+    resources:
+     { cloudtrail: { input: [Object], result: [] },
+       awsconfig: { input: [Object], result: [] }
+     }
+   } */
+  callback(null, event);
 };

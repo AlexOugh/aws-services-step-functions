@@ -1,4 +1,8 @@
 
 exports.handler = (event, context, callback) => {
-    callback(null, {result:event.result});
+  var results = {};
+  Object.keys(event.resources).forEach(function(key) {
+    results[key] = event.resources[key].result;
+  });
+  callback(null, {results:results});
 };

@@ -1,13 +1,16 @@
 
 exports.handler = (event, context, callback) => {
-    if (typeof(event.action_result) != 'object') {
-        event.action_result = {result: event.action_result};
-    }
-    else {
-      event.action_result = JSON.parse(event.action_result.body);
-    }
-    event.action_result['region'] = event.input.queryStringParameters.region;
-    delete event.action_result["__authorizer"]
-    event.result.push(event.action_result);
-    callback(null, event);
+  // we've got all outputs of the parallel actions, so merge results to the first action's output
+  var firstActionEvent = event[0];
+  event.forEach(function(actionEvent) {
+    Object.keys(actionEvent.resources).forEach(function(key) {
+      if (actionEvent.resources[key].action_result) {
+        var result = actionEvent.resources[key].action_result.body;
+        result['region'] = actionEvent.resources[key].input.queryStringParameters.region;
+        firstActionEvent.resources[key].result.push(result);
+        firstActionEvent.resources[key].action_result = null;
+      }
+    });
+  });
+  callback(null, firstActionEvent);
 };
