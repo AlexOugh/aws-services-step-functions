@@ -23,12 +23,12 @@
         {
           "Variable": "$.status",
           "StringLessThan": "RUNNING",
-          "Next": "FinalState"
+          "Next": "SendMessageToSlack"
         },
         {
           "Variable": "$.status",
           "StringGreaterThan": "RUNNING",
-          "Next": "FinalState"
+          "Next": "SendMessageToSlack"
         }
       ],
       "Default": "Wait5s"
@@ -37,6 +37,11 @@
       "Type": "Wait",
       "Seconds": 5,
       "Next": "CheckExecution"
+    },
+    "SendMessageToSlack": {
+      "Type" : "Task",
+      "Resource": "arn:aws:lambda:us-east-1:089476987273:function:send_message_to_slack",
+      "Next": "FinalState"
     },
     "FinalState": {
       "Type": "Pass",

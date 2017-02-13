@@ -8,7 +8,8 @@ exports.handler = (event, context, callback) => {
     data.Regions.map(function(region) {
       regions.push(region.RegionName);
     });
-    const num = regions.length;
+    event.regions = regions;
+    event.num = regions.length;
     var input = {
       "path": "",
       "httpMethod": event.method,
@@ -27,14 +28,10 @@ exports.handler = (event, context, callback) => {
     cloudtrailInput.path = "/cloudtrail";
     var awsconfigInput = JSON.parse(JSON.stringify(input));
     awsconfigInput.path = "/awsconfig";
-    var ret = {
-      regions: regions,
-      num: num,
-      resources: {
-        cloudtrail: {input: cloudtrailInput, result: []},
-        awsconfig: {input: awsconfigInput, result: []},
-      }
+    event.resources = {
+      cloudtrail: {input: cloudtrailInput, result: []},
+      awsconfig: {input: awsconfigInput, result: []},
     };
-    callback(null, ret);
+    callback(null, event);
   });
 };
