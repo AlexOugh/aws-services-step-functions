@@ -1,7 +1,7 @@
 
 # Step Functions
 
-State Machines to Manage AWS Services
+State Machines to Manage Onboarding Process for New AWS Accounts
 
 ![aws-services][aws-services-image]
 
