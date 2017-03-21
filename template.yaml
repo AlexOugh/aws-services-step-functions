@@ -1,16 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: State machine For New Account Onboarding Processes.
-Parameters:
-  FederationLambdaFunctionARN:
-    Type: String
-    Default: !Join
-      - ":"
-      - - "arn:aws:lambda"
-        - !Ref AWS::Region
-        - !Ref AWS::AccountId
-        - "function:SungardAS-Federation"
-    Description: ARN of Federation Lambda Function
 Resources:
   LambdaFunctionIAMRole:
       Type: "AWS::IAM::Role"
@@ -210,4 +200,4 @@ Resources:
             }
           }
         }
-      RoleArn: !Ref StateMachineIAMRole
+      RoleArn: !GetAtt StateMachineIAMRole.Arn
