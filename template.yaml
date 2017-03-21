@@ -30,6 +30,11 @@ Resources:
                       - "logs:CreateLogStream"
                       - "logs:PutLogEvents"
                     Resource: "arn:aws:logs:*:*:*"
+                  -
+                    Effect: "Allow"
+                    Action:
+                      - "ec2:*"
+                    Resource: "*"
 
   CreateAccountLambdaFunction:
     Type: AWS::Serverless::Function
@@ -163,7 +168,7 @@ Resources:
                   "States": {
                     "CloudtrailActionState": {
                       "Type" : "Task",
-                      "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Cloudtrail",
+                      "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-CloudTrail",
                       "InputPath": "$.cloudtrail",
                       "ResultPath": "$.cloudtrail.result",
                       "End": true

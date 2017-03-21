@@ -4,3 +4,4 @@ node_modules
 __*
 *.local.*
 samTemplate.yaml
+*.yaml1
