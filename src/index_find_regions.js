@@ -11,9 +11,9 @@ exports.handler = (event, context, callback) => {
     event.regions = regions;
     event.num_of_regions = regions.length;
     var credentials = {
-      "AccessKeyId": event.federation.credentials.Credentials.AccessKeyId,
-      "SecretAccessKey": event.federation.credentials.Credentials.SecretAccessKey,
-      "SessionToken": event.federation.credentials.Credentials.SessionToken
+      "AccessKeyId": event.credentials.Credentials.AccessKeyId,
+      "SecretAccessKey": event.credentials.Credentials.SecretAccessKey,
+      "SessionToken": event.credentials.Credentials.SessionToken
     }
     credentials = new Buffer(JSON.stringify(credentials)).toString('base64');
     event.cloudtrail.headers.Credentials = credentials;

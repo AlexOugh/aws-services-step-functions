@@ -1,5 +1,6 @@
 
 var fs = require('fs');
+var AWS = require('aws-sdk');
 var stack_builder = new (require('aws-services-lib/stack_builder'))();
 
 const createResponse = (statusCode, body) => {
@@ -13,56 +14,65 @@ exports.handler = function (event, context) {
 
   console.log(JSON.stringify(event));
 
+  var input = event.health;
+
+  var creds = new AWS.Credentials({
+    accessKeyId: event.credentials.Credentials.AccessKeyId,
+    secretAccessKey: event.credentials.Credentials.SecretAccessKey,
+    sessionToken: event.credentials.Credentials.SessionToken
+  });
+
   // create cloudformation and codepipeline roles first if not exist
-  createRole(event.cloudformationLambdaExecutionRole, function(err, data) {
+  createRole(creds, input.cloudformationLambdaExecutionRole, function(err, data) {
     if (err) {
-      console.log("Failed to created a role, " + event.cloudformationLambdaExecutionRole);
+      console.log("Failed to created a role, " + input.cloudformationLambdaExecutionRole);
       context.fail(err, null);
     }
     else {
-      createRole(event.codePipelineServiceRole, function(err, data) {
+      createRole(creds, input.codePipelineServiceRole, function(err, data) {
         if (err) {
-          console.log("Failed to created a role, " + event.codePipelineServiceRole);
+          console.log("Failed to created a role, " + input.codePipelineServiceRole);
           context.fail(err, null);
         }
         else {
           // set the param values
-          event.params.templateStr = event.templateStr;
-          event.params.parameters.forEach(function(param) {
+          input.params.templateStr = input.templateStr;
+          input.params.parameters.forEach(function(param) {
             if (param.ParameterKey == "CloudformationLambdaExecutionRoleArn") {
-              param.ParameterValue = "arn:aws:iam::" + event.accountId + ":role/cloudformation-lambda-execution-role"
+              param.ParameterValue = "arn:aws:iam::" + input.accountId + ":role/cloudformation-lambda-execution-role"
             }
             else if (param.ParameterKey == "CodePipelineServiceRoleArn") {
-              param.ParameterValue = "arn:aws:iam::" + event.accountId + ":role/AWS-CodePipeline-Service"
+              param.ParameterValue = "arn:aws:iam::" + input.accountId + ":role/AWS-CodePipeline-Service"
             }
             else if (param.ParameterKey == "ParameterOverrides") {
               var paramValue = {
                 "HealthLogGroupName": "/SungardAS/Alerts/Health",
-                "SubscriptionFilterDestinationArn": "arn:aws:logs:" + process.env.AWS_DEFAULT_REGION + ":" + event.accountId + ":destination:" + event.destinationName
+                "SubscriptionFilterDestinationArn": "arn:aws:logs:" + process.env.AWS_DEFAULT_REGION + ":" + input.accountId + ":destination:" + input.destinationName
               };
               param.ParameterValue = JSON.stringify(paramValue);
             }
             else if (param.ParameterKey == "GitHubPersonalAccessToken") {
-              param.ParameterValue = event.gitHubPersonalAccessToken;
+              param.ParameterValue = input.gitHubPersonalAccessToken;
             }
           });
 
           // now stack operation
-          event.params.region = process.env.AWS_DEFAULT_REGION;
-          stack_builder[event.action](event.params, function(err, data) {
+          input.params.creds = creds;
+          input.params.region = process.env.AWS_DEFAULT_REGION;
+          stack_builder[input.action](input.params, function(err, data) {
             if(err) {
-              if (event.action == 'launch') {
-                console.log("Error occurred during " + event.action + " : " + err);
+              if (input.action == 'launch') {
+                console.log("Error occurred during " + input.action + " : " + err);
                 context.fail(err, null);
               }
-              else if (event.action == 'drop') {
+              else if (input.action == 'drop') {
                 console.log("stack was already removed");
                 context.fail(err, null);
               }
             }
             else {
               console.log(data);
-              console.log("completed to " + event.action + " stack");
+              console.log("completed to " + input.action + " stack");
               context.done(null, createResponse(200, data));
             }
           });
@@ -72,7 +82,7 @@ exports.handler = function (event, context) {
   });
 }
 
-function createRole(roleName, callback) {
+function createRole(creds, roleName, callback) {
 
   var aws_role = new (require('aws-services-lib/aws/role.js'))();
 
@@ -83,6 +93,7 @@ function createRole(roleName, callback) {
   console.log(policyDocument);
 
   var input = {
+    creds: creds,
     region: process.env.AWS_DEFAULT_REGION,
     roleName : roleName,
     assumeRolePolicyDocument: trustDocument,

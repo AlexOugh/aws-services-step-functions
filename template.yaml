@@ -139,13 +139,13 @@ Resources:
               "Type": "Task",
               "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Federation",
               "InputPath": "$.federation",
-              "ResultPath": "$.federation.credentials",
+              "ResultPath": "$.credentials",
               "Next": "SetupHealthAlert"
             },
             "SetupHealthAlert": {
               "Type": "Task",
               "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Onboarding-Setup-Health",
-              "InputPath": "$.health",
+              "InputPath": "$",
               "ResultPath": "$.health.result",
               "Next": "FindRegionsState"
             },
