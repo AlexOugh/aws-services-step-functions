@@ -34,7 +34,7 @@ Resources:
                     Effect: "Allow"
                     Action:
                       - "ec2:*"
-                      - "iam.*"
+                      - "iam:*"
                       - "cloudformation:*"
                     Resource: "*"
 
