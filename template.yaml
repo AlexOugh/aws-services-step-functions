@@ -34,6 +34,7 @@ Resources:
                     Effect: "Allow"
                     Action:
                       - "ec2:*"
+                      - "cloudformation:*"
                     Resource: "*"
 
   CreateAccountLambdaFunction:
@@ -81,7 +82,15 @@ Resources:
       CodeUri: ./src
       Role: !GetAtt LambdaFunctionIAMRole.Arn
       Timeout: 60
-
+  HealthStackSetupLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SungardAS-Onboarding-Setup-Health
+      Handler: index_health_stack.handler
+      Runtime: nodejs4.3
+      CodeUri: ./src
+      Role: !GetAtt LambdaFunctionIAMRole.Arn
+      Timeout: 60
 
   StateMachineIAMRole:
       Type: "AWS::IAM::Role"
@@ -130,6 +139,13 @@ Resources:
               "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Federation",
               "InputPath": "$.federation",
               "ResultPath": "$.federation.credentials",
+              "Next": "SetupHealthAlert"
+            },
+            "SetupHealthAlert": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Onboarding-Setup-Health",
+              "InputPath": "$.health",
+              "ResultPath": "$.health.result",
               "Next": "FindRegionsState"
             },
             "FindRegionsState": {
