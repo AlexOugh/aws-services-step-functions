@@ -1,6 +1,5 @@
 
 var fs = require('fs');
-var AWS = require('aws-sdk');
 var stack_builder = new (require('aws-services-lib/stack_builder'))();
 
 const createResponse = (statusCode, body) => {
@@ -14,13 +13,9 @@ exports.handler = function (event, context) {
 
   console.log(JSON.stringify(event));
 
-  var input = event.health;
+  var input = event;
 
-  var creds = new AWS.Credentials({
-    accessKeyId: event.credentials.Credentials.AccessKeyId,
-    secretAccessKey: event.credentials.Credentials.SecretAccessKey,
-    sessionToken: event.credentials.Credentials.SessionToken
-  });
+  var creds = input.credentials;
 
   // create cloudformation and codepipeline roles first if not exist
   createRole(creds, input.cloudformationLambdaExecutionRole, function(err, data) {
@@ -47,7 +42,7 @@ exports.handler = function (event, context) {
             else if (param.ParameterKey == "ParameterOverrides") {
               var paramValue = {
                 "HealthLogGroupName": "/SungardAS/Alerts/Health",
-                "SubscriptionFilterDestinationArn": "arn:aws:logs:" + process.env.AWS_DEFAULT_REGION + ":" + input.accountId + ":destination:" + input.destinationName
+                "SubscriptionFilterDestinationArn": input.subscriptionFilterDestinationArn
               };
               param.ParameterValue = JSON.stringify(paramValue);
             }

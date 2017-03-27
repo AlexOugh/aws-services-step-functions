@@ -177,7 +177,7 @@ Resources:
             "SetupHealthAlert": {
               "Type": "Task",
               "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Onboarding-Setup-Health",
-              "InputPath": "$",
+              "InputPath": "$.health",
               "ResultPath": "$.health.result",
               "Next": "FindRegionsState"
             },
