@@ -47,6 +47,15 @@ Resources:
       CodeUri: ./src
       Role: !GetAtt LambdaFunctionIAMRole.Arn
       Timeout: 60
+  SetCredentialsLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SungardAS-Onboarding-Set-Credentials
+      Handler: index_set_credentials.handler
+      Runtime: nodejs4.3
+      CodeUri: ./src
+      Role: !GetAtt LambdaFunctionIAMRole.Arn
+      Timeout: 60
   FindRegionsLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -88,6 +97,15 @@ Resources:
     Properties:
       FunctionName: SungardAS-Onboarding-Setup-Health
       Handler: index_health_stack.handler
+      Runtime: nodejs4.3
+      CodeUri: ./src
+      Role: !GetAtt LambdaFunctionIAMRole.Arn
+      Timeout: 60
+  AddAccountToDestinationLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SungardAS-Onboarding-Add-Account-To-Destination
+      Handler: index_alerts_destination.handler
       Runtime: nodejs4.3
       CodeUri: ./src
       Role: !GetAtt LambdaFunctionIAMRole.Arn
@@ -140,6 +158,19 @@ Resources:
               "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Federation",
               "InputPath": "$.federation",
               "ResultPath": "$.credentials",
+              "Next": "SetCredentials"
+            },
+            "SetCredentials": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Onboarding-Set-Credentials",
+              "InputPath": "$",
+              "Next": "AddAccountToAlertDestinations"
+            },
+            "AddAccountToAlertDestinations": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Onboarding-Add-Account-To-Destination",
+              "InputPath": "$.destination",
+              "ResultPath": "$.destination.result",
               "Next": "SetupHealthAlert"
             },
             "SetupHealthAlert": {

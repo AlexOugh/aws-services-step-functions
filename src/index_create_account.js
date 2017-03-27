@@ -13,7 +13,10 @@ exports.handler = (event, context, callback) => {
   event.federation.roles = roles;
   event.federation.authorizer_user_guid = accountId;
 
-  // set account info for health alert
+  // set account id in alerts destination
+  event.alerts_destination.accountToAdd = accountId;
+
+  // set account id in health alert
   event.health.accountId = accountId;
 
   callback(null, event);
