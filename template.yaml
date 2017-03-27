@@ -170,8 +170,8 @@ Resources:
             "AddAccountToAlertDestinations": {
               "Type": "Task",
               "Resource": "arn:aws:lambda:AWS::REGION:AWS::ACCOUNT_ID:function:SungardAS-Onboarding-Add-Account-To-Destination",
-              "InputPath": "$.destination",
-              "ResultPath": "$.destination.result",
+              "InputPath": "$.alerts_destination",
+              "ResultPath": "$.alerts_destination.result",
               "Next": "SetupHealthAlert"
             },
             "SetupHealthAlert": {
