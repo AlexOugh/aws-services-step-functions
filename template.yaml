@@ -36,6 +36,7 @@ Resources:
                       - "ec2:*"
                       - "iam:*"
                       - "cloudformation:*"
+                      - "logs:*"
                     Resource: "*"
 
   CreateAccountLambdaFunction:
