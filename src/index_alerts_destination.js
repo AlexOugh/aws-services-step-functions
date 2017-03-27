@@ -1,4 +1,5 @@
 
+var fs = require('fs');
 var AWS = require('aws-sdk');
 var StackBuilder = require('aws-services-lib/stack_builder');
 
@@ -9,11 +10,21 @@ const createResponse = (statusCode, body) => {
   }
 };
 
-var result = [];
+var result = {};
 
 exports.handler = function (event, context) {
 
   console.log(JSON.stringify(event));
+
+  // read in the destination template
+  if (event.templatePath) {
+    event.params.templateStr = fs.readFileSync(__dirname + event.templatePath, {encoding:'utf8'});
+    event.params.usePreviousTemplate = false;
+  }
+  else {
+    event.params.usePreviousTemplate = true;
+  }
+  console.log(event.params);
 
   var ec2Main = new AWS.EC2({region:'us-east-1'});
   ec2Main.describeRegions({}, function(err, regions) {
@@ -26,7 +37,15 @@ exports.handler = function (event, context) {
           context.fail(err, null);
         }
         else {
-          context.done(null, createResponse(200, res));
+          console.log("\n\nStarting to check stack status");
+          checkStatus(regions.Regions, 0, event, function(err, res) {
+            if (err) {
+              context.fail(err, null);
+            }
+            else {
+              context.done(null, createResponse(200, res));
+            }
+          });
         }
       });
     }
@@ -37,6 +56,7 @@ function build(regions, idx, event, callback) {
 
   var params = JSON.parse(JSON.stringify(event.params));
   params.region = regions[idx].RegionName;
+  params.nowait = true;
 
   findDestinationPolicy(params.region, event.destinationName, function(err, policy) {
     if (err) {
@@ -71,18 +91,18 @@ function build(regions, idx, event, callback) {
         if(err) {
           if (event.action == 'launch') {
             console.log("Error occurred during " + event.action + " in region, " + params.region + " : " + err);
-            result.push({'region':params.region, 'result':err});
+            result[params.region] = err;
             return callback(null, result);
           }
           else if (event.action == 'drop') {
             console.log("stack was already removed in region, " + params.region);
-            result.push({'region':params.region, 'result':err});
+            result[params.region] = err;
             return callback(null, result);
           }
         }
         else {
           console.log("completed to " + event.action + " stack in region, " + params.region + " : " + status);
-          result.push({'region':params.region, 'result':status});
+          result[params.region] = status;
           if (++idx >= regions.length) {
             return callback(null, result);
           }
@@ -93,6 +113,34 @@ function build(regions, idx, event, callback) {
       });
     }
   });
+}
+
+function checkStatus(regions, idx, event, callback) {
+
+  var params = JSON.parse(JSON.stringify(event.params));
+  params.region = regions[idx].RegionName;
+
+  // now stack operation
+  if (result[params.region]) {
+    var stack_builder = new StackBuilder();
+    stack_builder["waitFor" + event.action](params, function(err, status) {
+      if(err) {
+        console.log("Error occurred during waitForComplete in region, " + params.region + " : " + err);
+        result[params.region] = err;
+        return callback(null, result);
+      }
+      else {
+        console.log("completed to waitForComplete in region, " + params.region + " : " + status);
+        result[params.region] = status;
+        if (++idx >= regions.length) {
+          return callback(null, result);
+        }
+        else {
+          checkStatus(regions, idx, event, callback);
+        }
+      }
+    });
+  }
 }
 
 function findDestinationPolicy(region, destinationName, callback) {
